@@ -1,15 +1,18 @@
 "use client"
 
+import type React from "react"
+
 import { Users, FileText, Sun, Moon, Palette } from "lucide-react"
 
 interface HeaderProps {
-  view: "users" | "posts"
-  onViewChange: (view: "users" | "posts") => void
+  view: "users" | "posts" | "usernames"
+  onViewChange: (view: "users" | "posts" | "usernames") => void
   theme: "sage" | "lavender" | "ocean" | "sunset"
   onThemeChange: (theme: "sage" | "lavender" | "ocean" | "sunset") => void
   mode: "light" | "dark"
   onModeChange: (mode: "light" | "dark") => void
   userCount: number
+  postCount: number
 }
 
 export default function Header({
@@ -20,6 +23,7 @@ export default function Header({
   mode,
   onModeChange,
   userCount,
+  postCount,
 }: HeaderProps) {
   return (
     <header
@@ -51,18 +55,26 @@ export default function Header({
               className={`flex gap-2 p-1 rounded-lg ${
                 mode === "light" ? "bg-gray-100 border border-gray-200" : "bg-gray-700 border border-gray-600"
               }`}
+              style={
+                {
+                  "--current-primary": "var(--current-primary)",
+                } as React.CSSProperties
+              }
             >
               <button
                 onClick={() => onViewChange("users")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all font-medium text-sm ${
                   view === "users"
                     ? mode === "light"
-                      ? "bg-white shadow-sm text-gray-900"
-                      : "bg-gray-600 text-white"
+                      ? "shadow-sm text-white"
+                      : "text-white"
                     : mode === "light"
                       ? "text-gray-600 hover:text-gray-900"
                       : "text-gray-300 hover:text-white"
                 }`}
+                style={{
+                  backgroundColor: view === "users" ? "var(--current-primary)" : "transparent",
+                }}
               >
                 <Users className="w-4 h-4" />
                 Users ({userCount})
@@ -72,15 +84,36 @@ export default function Header({
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all font-medium text-sm ${
                   view === "posts"
                     ? mode === "light"
-                      ? "bg-white shadow-sm text-gray-900"
-                      : "bg-gray-600 text-white"
+                      ? "shadow-sm text-white"
+                      : "text-white"
                     : mode === "light"
                       ? "text-gray-600 hover:text-gray-900"
                       : "text-gray-300 hover:text-white"
                 }`}
+                style={{
+                  backgroundColor: view === "posts" ? "var(--current-primary)" : "transparent",
+                }}
               >
                 <FileText className="w-4 h-4" />
-                All Posts
+                All Posts ({postCount})
+              </button>
+              <button
+                onClick={() => onViewChange("usernames")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all font-medium text-sm ${
+                  view === "usernames"
+                    ? mode === "light"
+                      ? "shadow-sm text-white"
+                      : "text-white"
+                    : mode === "light"
+                      ? "text-gray-600 hover:text-gray-900"
+                      : "text-gray-300 hover:text-white"
+                }`}
+                style={{
+                  backgroundColor: view === "usernames" ? "var(--current-primary)" : "transparent",
+                }}
+              >
+                <Users className="w-4 h-4" />
+                All Usernames
               </button>
             </div>
           </div>

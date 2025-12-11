@@ -83,6 +83,10 @@
   --border-dark: #374151;
   --shadow-dark: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-lg-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+
+  /* Default search bar and input colors (light mode) */
+  --border-default-light: #e5e7eb;
+  --border-default-dark: #374151;
 }
 
 .dark {
@@ -267,4 +271,14 @@
 
 ::-webkit-scrollbar-thumb:hover {
   opacity: 0.8;
+}
+
+/* Theme-based search input - ensures default grey border when no theme selected */
+input {
+  border-color: var(--current-primary);
+}
+
+/* Ensure search bar shows theme color */
+.search-input {
+  border-color: var(--current-primary);
 }

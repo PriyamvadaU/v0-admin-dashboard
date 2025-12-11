@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useMemo } from "react"
-import { Search, X } from "lucide-react"
+import { Search, X, ChevronDown, ChevronUp } from "lucide-react"
 
 interface User {
   id: number
@@ -32,11 +32,13 @@ interface UserListViewProps {
   users: User[]
   posts: Post[]
   postCountMap: Record<number, number>
+  commentsByPostId: Record<number, { postId: number; id: number; name: string; email: string; body: string }[]>
 }
 
-export default function UserListView({ users, posts, postCountMap }: UserListViewProps) {
+export default function UserListView({ users, posts, postCountMap, commentsByPostId }: UserListViewProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null)
+  const [expandedPostId, setExpandedPostId] = useState<number | null>(null)
   const mode = typeof window !== "undefined" ? document.documentElement.getAttribute("data-mode") : "light"
 
   const filteredUsers = useMemo(() => {
@@ -74,14 +76,14 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
             placeholder="Search by name, email, or username..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border transition-colors ${
+            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
               mode === "light"
-                ? "bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-current-primary focus:ring-1"
-                : "bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-current-primary focus:ring-1"
+                ? "bg-white text-gray-900 placeholder-gray-400"
+                : "bg-gray-700 text-white placeholder-gray-400"
             }`}
             style={
               {
-                "--current-primary": "var(--current-primary)",
+                borderColor: "var(--current-primary)",
               } as React.CSSProperties
             }
           />
@@ -97,9 +99,8 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
           )}
         </div>
         <div
-          className={`px-3 py-2.5 rounded-lg text-sm font-semibold ${
-            mode === "light" ? "bg-gray-100 text-gray-700" : "bg-gray-700 text-gray-200"
-          }`}
+          className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white whitespace-nowrap"
+          style={{ backgroundColor: "var(--current-primary)" }}
         >
           Total: {filteredUsers.length}
         </div>
@@ -119,6 +120,8 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
           filteredUsers.map((user) => {
             const isExpanded = expandedUserId === user.id
             const userPosts = userPostsMap[user.id] || []
+            const photoGender = user.id % 2 === 0 ? "men" : "women"
+            const photoIndex = (user.id % 50) + 1
 
             return (
               <div
@@ -126,14 +129,15 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
                 className={`rounded-lg border transition-all ${
                   isExpanded
                     ? mode === "light"
-                      ? "border-current-primary bg-current-light shadow-lg"
-                      : "border-current-primary bg-gray-700 shadow-lg"
+                      ? "bg-current-light shadow-lg"
+                      : "bg-gray-700 shadow-lg"
                     : mode === "light"
-                      ? "border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-current-primary"
-                      : "border-gray-600 bg-gray-800 shadow-sm hover:shadow-md hover:border-current-primary"
+                      ? "bg-white shadow-sm hover:shadow-md"
+                      : "bg-gray-800 shadow-sm hover:shadow-md"
                 }`}
                 style={
                   {
+                    borderColor: "var(--current-primary)",
                     "--current-primary": "var(--current-primary)",
                     "--current-light": "var(--current-light)",
                   } as React.CSSProperties
@@ -145,13 +149,13 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
                   className="w-full p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
                 >
                   <div className="flex items-center gap-4 flex-1">
-                    {/* Avatar */}
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg"
-                      style={{ backgroundColor: "var(--current-primary)" }}
-                    >
-                      {user.name.charAt(0)}
-                    </div>
+                    {/* Avatar - Circular Photo from randomuser.me */}
+                    <img
+                      src={`https://randomuser.me/api/portraits/${photoGender}/${photoIndex}.jpg`}
+                      alt={user.name}
+                      className="w-12 h-12 rounded-full flex-shrink-0 object-cover border-2"
+                      style={{ borderColor: "var(--current-primary)" }}
+                    />
 
                     {/* User Info */}
                     <div className="text-left">
@@ -172,8 +176,14 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
                     </div>
                   </div>
 
-                  {/* Chevron Icon */}
-                  <div className="ml-4">{isExpanded ? "▼" : "▶"}</div>
+                  {/* Chevron Icon - Always Visible */}
+                  <div className="ml-4 flex-shrink-0">
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5" style={{ color: "var(--current-primary)" }} />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" style={{ color: "var(--current-primary)" }} />
+                    )}
+                  </div>
                 </button>
 
                 {/* Expanded Content */}
@@ -287,7 +297,15 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
                             No posts from this user
                           </p>
                         ) : (
-                          userPosts.map((post) => <PostCard key={post.id} post={post} />)
+                          userPosts.map((post) => (
+                            <PostCard
+                              key={post.id}
+                              post={post}
+                              postComments={commentsByPostId[post.id] || []}
+                              expandedPostId={expandedPostId}
+                              setExpandedPostId={setExpandedPostId}
+                            />
+                          ))
                         )}
                       </div>
                     </div>
@@ -302,8 +320,19 @@ export default function UserListView({ users, posts, postCountMap }: UserListVie
   )
 }
 
-function PostCard({ post }: { post: Post }) {
+function PostCard({
+  post,
+  postComments,
+  expandedPostId,
+  setExpandedPostId,
+}: {
+  post: Post
+  postComments: { postId: number; id: number; name: string; email: string; body: string }[]
+  expandedPostId: number | null
+  setExpandedPostId: (id: number | null) => void
+}) {
   const mode = typeof window !== "undefined" ? document.documentElement.getAttribute("data-mode") : "light"
+  const isExpanded = expandedPostId === post.id
 
   return (
     <div
@@ -321,7 +350,7 @@ function PostCard({ post }: { post: Post }) {
       <p className={`text-sm line-clamp-2 mb-3 ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>{post.body}</p>
 
       {/* Interaction Metrics */}
-      <div className="flex items-center justify-between text-xs gap-2">
+      <div className="flex items-center justify-between text-xs gap-2 mb-3">
         <div className="flex items-center gap-1">
           <span style={{ color: "var(--current-primary)" }}>❤️</span>
           <span className={mode === "light" ? "text-gray-700" : "text-gray-300"}>{post.likes}</span>
@@ -343,6 +372,45 @@ function PostCard({ post }: { post: Post }) {
           <span className={mode === "light" ? "text-gray-700" : "text-gray-300"}>{post.views}</span>
         </div>
       </div>
+
+      <button
+        onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
+        className="text-xs font-semibold transition-colors"
+        style={{ color: "var(--current-primary)" }}
+      >
+        {isExpanded ? "Hide Comments" : "View All Comments"} ({postComments.length})
+      </button>
+
+      {/* Comments Section */}
+      {isExpanded && (
+        <div className={`mt-4 pt-4 border-t space-y-3 ${mode === "light" ? "border-gray-200" : "border-gray-700"}`}>
+          {postComments.length === 0 ? (
+            <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>No comments yet</p>
+          ) : (
+            postComments.map((comment) => (
+              <div key={comment.id} className={`text-xs ${mode === "light" ? "" : ""}`}>
+                <div className="flex items-start gap-2">
+                  <div
+                    className="w-6 h-6 rounded-full flex-shrink-0 text-white font-bold text-xs flex items-center justify-center"
+                    style={{ backgroundColor: "var(--current-primary)" }}
+                  >
+                    {comment.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                      {comment.name}
+                    </p>
+                    <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>{comment.email}</p>
+                    <p className={`text-xs mt-1 ${mode === "light" ? "text-gray-600" : "text-gray-300"}`}>
+                      {comment.body}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   )
 }
