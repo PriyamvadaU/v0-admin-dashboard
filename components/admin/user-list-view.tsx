@@ -36,12 +36,22 @@ interface UserListViewProps {
 }
 
 type SortOption = "name" | "active" | "comments" | "interactions"
+type UserPostSortOption =
+  | "chronological"
+  | "mostLiked"
+  | "leastLiked"
+  | "mostCommented"
+  | "mostPopularTopic"
+  | "leastPopularTopic"
+  | "mostShared"
+  | "mostViewed"
 
 export default function UserListView({ users, posts, postCountMap, commentsByPostId }: UserListViewProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null)
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>("name")
+  const [userPostSortMap, setUserPostSortMap] = useState<Record<number, UserPostSortOption>>({})
   const mode = typeof window !== "undefined" ? document.documentElement.getAttribute("data-mode") : "light"
 
   const extractHashtags = (text: string): string[] => {
@@ -53,7 +63,6 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
     return users.filter((user) => {
       const query = searchQuery.toLowerCase()
 
-      // If it's a hashtag search, check user's posts for that hashtag
       if (query.startsWith("#")) {
         const userPosts = posts.filter((p) => p.userId === user.id)
         return userPosts.some((post) => {
@@ -62,7 +71,6 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
         })
       }
 
-      // Regular text search
       return (
         user.name.toLowerCase().includes(query) ||
         user.username.toLowerCase().includes(query) ||
@@ -154,6 +162,68 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
     setSearchQuery(e.target.value)
   }, [])
 
+  const handleUserPostSort = useCallback((userId: number, sortOption: UserPostSortOption) => {
+    setUserPostSortMap((prev) => ({ ...prev, [userId]: sortOption }))
+  }, [])
+
+  const getSortedUserPosts = useCallback(
+    (userId: number, userPosts: Post[]) => {
+      const sortOption = userPostSortMap[userId] || "chronological"
+      const sorted = [...userPosts]
+
+      switch (sortOption) {
+        case "mostLiked":
+          return sorted.sort((a, b) => b.likes - a.likes)
+        case "leastLiked":
+          return sorted.sort((a, b) => a.likes - b.likes)
+        case "mostCommented":
+          return sorted.sort((a, b) => b.comments - a.comments)
+        case "mostShared":
+          return sorted.sort((a, b) => b.shares - a.shares)
+        case "mostViewed":
+          return sorted.sort((a, b) => b.views - a.views)
+        case "mostPopularTopic": {
+          const hashtagFrequency: Record<string, number> = {}
+          userPosts.forEach((post) => {
+            const hashtags = extractHashtags(post.body.toLowerCase())
+            hashtags.forEach((tag) => {
+              hashtagFrequency[tag] = (hashtagFrequency[tag] || 0) + 1
+            })
+          })
+
+          return sorted.sort((a, b) => {
+            const aHashtags = extractHashtags(a.body.toLowerCase())
+            const bHashtags = extractHashtags(b.body.toLowerCase())
+            const aScore = aHashtags.reduce((sum, tag) => sum + (hashtagFrequency[tag] || 0), 0)
+            const bScore = bHashtags.reduce((sum, tag) => sum + (hashtagFrequency[tag] || 0), 0)
+            return bScore - aScore || b.likes + b.comments - (a.likes + a.comments)
+          })
+        }
+        case "leastPopularTopic": {
+          const hashtagFrequency: Record<string, number> = {}
+          userPosts.forEach((post) => {
+            const hashtags = extractHashtags(post.body.toLowerCase())
+            hashtags.forEach((tag) => {
+              hashtagFrequency[tag] = (hashtagFrequency[tag] || 0) + 1
+            })
+          })
+
+          return sorted.sort((a, b) => {
+            const aHashtags = extractHashtags(a.body.toLowerCase())
+            const bHashtags = extractHashtags(b.body.toLowerCase())
+            const aScore = aHashtags.reduce((sum, tag) => sum + (hashtagFrequency[tag] || 0), 0)
+            const bScore = bHashtags.reduce((sum, tag) => sum + (hashtagFrequency[tag] || 0), 0)
+            return aScore - bScore || a.likes + a.comments - (b.likes + b.comments)
+          })
+        }
+        case "chronological":
+        default:
+          return sorted
+      }
+    },
+    [userPostSortMap],
+  )
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6">
       {/* Search Bar and Sort Options */}
@@ -215,7 +285,7 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
               <button
                 key={option.value}
                 onClick={() => setSortBy(option.value as SortOption)}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-base font-medium transition-colors ${
                   sortBy === option.value
                     ? "text-white"
                     : mode === "light"
@@ -564,6 +634,52 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                       </div>
                     </div>
 
+                    {/* Individual Post Sort Bar */}
+                    <div className="border-t pt-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+                        <label
+                          className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${
+                            mode === "light" ? "text-gray-700" : "text-gray-300"
+                          }`}
+                        >
+                          Sort Posts By:
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { value: "chronological", label: "Chronological", icon: "📅" },
+                            { value: "mostLiked", label: "Most Liked", icon: "❤️" },
+                            { value: "leastLiked", label: "Least Liked", icon: "💔" },
+                            { value: "mostCommented", label: "Most Commented", icon: "💬" },
+                            { value: "mostPopularTopic", label: "Popular Topic", icon: "🔥" },
+                            { value: "leastPopularTopic", label: "Niche Topic", icon: "🌱" },
+                            { value: "mostShared", label: "Most Shared", icon: "📤" },
+                            { value: "mostViewed", label: "Most Viewed", icon: "👁️" },
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleUserPostSort(user.id, option.value as UserPostSortOption)}
+                              className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-all ${
+                                (userPostSortMap[user.id] || "chronological") === option.value
+                                  ? "text-white shadow-md"
+                                  : mode === "light"
+                                    ? "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                                    : "bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
+                              }`}
+                              style={
+                                (userPostSortMap[user.id] || "chronological") === option.value
+                                  ? { backgroundColor: "var(--current-primary)" }
+                                  : {}
+                              }
+                            >
+                              <span className="text-xs">{option.icon}</span>
+                              <span className="hidden sm:inline">{option.label}</span>
+                              <span className="sm:hidden">{option.label.split(" ")[0]}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* User Posts */}
                     <div className="border-t pt-4">
                       <h4 className={`font-semibold text-sm mb-4 ${mode === "light" ? "text-gray-900" : "text-white"}`}>
@@ -571,11 +687,11 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                       </h4>
                       <div className="space-y-3">
                         {userPosts.length === 0 ? (
-                          <p className={`text-xs sm:text-sm ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
+                          <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
                             No posts from this user
                           </p>
                         ) : (
-                          userPosts.map((post) => (
+                          getSortedUserPosts(user.id, userPosts).map((post) => (
                             <PostCard
                               key={post.id}
                               post={post}
