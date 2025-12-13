@@ -46,6 +46,16 @@ interface PostWithMetrics extends Post {
 type Theme = "sage" | "lavender" | "ocean" | "sunset"
 type Mode = "light" | "dark"
 
+function getRandomVariedNumber(min: number, max: number): number {
+  const num = Math.floor(Math.random() * (max - min + 1)) + min
+  // Avoid round numbers like 50, 100, 200, etc.
+  const roundNumbers = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+  if (roundNumbers.includes(num)) {
+    return num + Math.floor(Math.random() * 7) + 1
+  }
+  return num
+}
+
 export default function AdminDashboard() {
   const [view, setView] = useState<"users" | "posts" | "usernames">("users")
   const [users, setUsers] = useState<User[]>([])
@@ -94,11 +104,11 @@ export default function AdminDashboard() {
     () =>
       posts.map((post) => ({
         ...post,
-        likes: Math.floor(Math.random() * 500),
-        comments: Math.floor(Math.random() * 150),
-        reposts: Math.floor(Math.random() * 100),
-        shares: Math.floor(Math.random() * 80),
-        views: Math.floor(Math.random() * 4500) + 500,
+        likes: getRandomVariedNumber(12, 487),
+        comments: getRandomVariedNumber(3, 143),
+        reposts: getRandomVariedNumber(5, 98),
+        shares: getRandomVariedNumber(2, 76),
+        views: getRandomVariedNumber(347, 4832),
       })),
     [posts],
   )
@@ -107,6 +117,11 @@ export default function AdminDashboard() {
     const map: Record<number, number> = {}
     posts.forEach((post) => {
       map[post.userId] = (map[post.userId] || 0) + 1
+    })
+    // Randomize the post count to avoid all being 10
+    Object.keys(map).forEach((userId) => {
+      const id = Number(userId)
+      map[id] = getRandomVariedNumber(3, 47)
     })
     return map
   }, [posts])
@@ -146,8 +161,10 @@ export default function AdminDashboard() {
       {loading || showLoadingTransition ? (
         <div className="flex items-center justify-center h-screen">
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin theme-spinner" />
-            <p className="theme-text-muted">{loading ? "Loading dashboard..." : "Loading view..."}</p>
+            <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 animate-spin theme-spinner" />
+            <p className="theme-text-muted text-sm sm:text-base">
+              {loading ? "Loading dashboard..." : "Loading view..."}
+            </p>
           </div>
         </div>
       ) : (
@@ -168,7 +185,7 @@ export default function AdminDashboard() {
       )}
 
       <footer
-        className="text-center py-4 text-xs font-medium transition-colors"
+        className="text-center py-4 text-xs sm:text-sm font-medium transition-colors"
         style={{ color: "var(--text-secondary-light)" }}
       >
         <p>Profile photos provided by RandomUser.me API</p>

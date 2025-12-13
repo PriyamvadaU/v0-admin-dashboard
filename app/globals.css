@@ -38,37 +38,67 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Sage theme (default) */
-  --sage-primary: #a5b18d;
-  --sage-secondary: #e8daba;
-  --sage-accent: #d9a891;
-  --sage-muted: #c8aeb2;
-  --sage-light: #f5efe0;
+  /* Light Mode Palettes (from spec) */
+  /* Dusty Rose theme */
+  --dusty-rose-primary: rgb(214, 169, 157);
+  --dusty-rose-secondary: rgb(251, 243, 213);
+  --dusty-rose-accent: rgb(214, 218, 200);
+  --dusty-rose-muted: rgb(156, 175, 170);
+  --dusty-rose-light: #fef9f7;
+
+  /* Sage theme (green tones) */
+  --sage-primary: rgb(214, 218, 200);
+  --sage-secondary: rgb(156, 175, 170);
+  --sage-accent: rgb(214, 169, 157);
+  --sage-muted: rgb(251, 243, 213);
+  --sage-light: #f8faf6;
 
   /* Lavender theme */
-  --lavender-primary: #9b8ba3;
-  --lavender-secondary: #e6d9f0;
+  --lavender-primary: #b8a5c9;
+  --lavender-secondary: #e8dff5;
   --lavender-accent: #d4a5d4;
-  --lavender-muted: #b8a3c9;
-  --lavender-light: #f8f3fb;
+  --lavender-muted: #c9b8d1;
+  --lavender-light: #f9f6fb;
 
   /* Ocean theme */
-  --ocean-primary: #4a90a4;
-  --ocean-secondary: #b8d9e8;
-  --ocean-accent: #5fa8be;
-  --ocean-muted: #7fb3c2;
-  --ocean-light: #e8f2f7;
+  --ocean-primary: rgb(156, 175, 170);
+  --ocean-secondary: rgb(214, 218, 200);
+  --ocean-accent: #7fb3c2;
+  --ocean-muted: #b8d9e8;
+  --ocean-light: #f0f7f9;
 
-  /* Sunset theme */
-  --sunset-primary: #d97706;
-  --sunset-secondary: #fdbf60;
-  --sunset-accent: #f97316;
-  --sunset-muted: #ef9d5f;
-  --sunset-light: #fef3e2;
+  /* Dark Mode Palettes (from spec) */
+  /* Deep Navy theme */
+  --deep-navy-primary: rgb(33, 52, 72);
+  --deep-navy-secondary: rgb(84, 119, 146);
+  --deep-navy-accent: rgb(148, 180, 193);
+  --deep-navy-muted: rgb(236, 239, 202);
+  --deep-navy-dark: #0f1c2a;
+
+  /* Slate theme */
+  --slate-primary: rgb(84, 119, 146);
+  --slate-secondary: rgb(148, 180, 193);
+  --slate-accent: rgb(236, 239, 202);
+  --slate-muted: rgb(33, 52, 72);
+  --slate-dark: #1a2734;
+
+  /* Midnight theme */
+  --midnight-primary: rgb(148, 180, 193);
+  --midnight-secondary: rgb(84, 119, 146);
+  --midnight-accent: rgb(236, 239, 202);
+  --midnight-muted: rgb(33, 52, 72);
+  --midnight-dark: #121e2d;
+
+  /* Sunset dark theme */
+  --sunset-dark-primary: #e8a850;
+  --sunset-dark-secondary: #8b5400;
+  --sunset-dark-accent: #ffae42;
+  --sunset-dark-muted: #fdbf60;
+  --sunset-dark-bg: #2a1f0f;
 
   /* Light mode backgrounds */
   --bg-primary-light: #ffffff;
-  --bg-secondary-light: #f9f7f4;
+  --bg-secondary-light: #fafafa;
   --text-primary-light: #1f2937;
   --text-secondary-light: #6b7280;
   --border-light: #e5e7eb;
@@ -76,17 +106,17 @@
   --shadow-lg-light: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
   /* Dark mode backgrounds */
-  --bg-primary-dark: #1f2937;
-  --bg-secondary-dark: #111827;
+  --bg-primary-dark: rgb(33, 52, 72);
+  --bg-secondary-dark: rgb(24, 38, 53);
   --text-primary-dark: #f3f4f6;
   --text-secondary-dark: #d1d5db;
-  --border-dark: #374151;
+  --border-dark: rgb(84, 119, 146);
   --shadow-dark: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-lg-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
 
   /* Default search bar and input colors (light mode) */
-  --border-default-light: #e5e7eb;
-  --border-default-dark: #374151;
+  --border-default-light: #d1d5db;
+  --border-default-dark: rgb(84, 119, 146);
 }
 
 .dark {
@@ -188,7 +218,7 @@
   color: var(--text-primary-dark);
 }
 
-/* Theme colors based on data-theme attribute */
+/* Light mode themes */
 [data-theme="sage"][data-mode="light"] {
   --current-primary: var(--sage-primary);
   --current-secondary: var(--sage-secondary);
@@ -214,44 +244,44 @@
 }
 
 [data-theme="sunset"][data-mode="light"] {
-  --current-primary: var(--sunset-primary);
-  --current-secondary: var(--sunset-secondary);
-  --current-accent: var(--sunset-accent);
-  --current-muted: var(--sunset-muted);
-  --current-light: var(--sunset-light);
+  --current-primary: var(--dusty-rose-primary);
+  --current-secondary: var(--dusty-rose-secondary);
+  --current-accent: var(--dusty-rose-accent);
+  --current-muted: var(--dusty-rose-muted);
+  --current-light: var(--dusty-rose-light);
 }
 
-/* Dark mode theme adjustments */
+/* Dark mode themes */
 [data-theme="sage"][data-mode="dark"] {
-  --current-primary: #d4c4ab;
-  --current-secondary: #9b8f76;
-  --current-accent: #e8b5a0;
-  --current-muted: #a88a9e;
-  --current-light: #2d2420;
+  --current-primary: var(--deep-navy-accent);
+  --current-secondary: var(--deep-navy-secondary);
+  --current-accent: var(--deep-navy-muted);
+  --current-muted: var(--deep-navy-primary);
+  --current-light: var(--deep-navy-dark);
 }
 
 [data-theme="lavender"][data-mode="dark"] {
-  --current-primary: #c9b8d1;
-  --current-secondary: #6b5e7e;
-  --current-accent: #e8c8e8;
-  --current-muted: #9b7fa8;
-  --current-light: #2a2230;
+  --current-primary: var(--slate-accent);
+  --current-secondary: var(--slate-secondary);
+  --current-accent: var(--slate-primary);
+  --current-muted: var(--slate-muted);
+  --current-light: var(--slate-dark);
 }
 
 [data-theme="ocean"][data-mode="dark"] {
-  --current-primary: #7bb3cc;
-  --current-secondary: #3a5a6f;
-  --current-accent: #8cd4f0;
-  --current-muted: #5c8ba3;
-  --current-light: #1f3a47;
+  --current-primary: var(--midnight-primary);
+  --current-secondary: var(--midnight-secondary);
+  --current-accent: var(--midnight-accent);
+  --current-muted: var(--midnight-muted);
+  --current-light: var(--midnight-dark);
 }
 
 [data-theme="sunset"][data-mode="dark"] {
-  --current-primary: #fdbf60;
-  --current-secondary: #8b5400;
-  --current-accent: #ffae42;
-  --current-muted: #e8a850;
-  --current-light: #3a2410;
+  --current-primary: var(--sunset-dark-primary);
+  --current-secondary: var(--sunset-dark-secondary);
+  --current-accent: var(--sunset-dark-accent);
+  --current-muted: var(--sunset-dark-muted);
+  --current-light: var(--sunset-dark-bg);
 }
 
 /* Custom scrollbar */
@@ -275,10 +305,27 @@
 
 /* Theme-based search input - ensures default grey border when no theme selected */
 input {
-  border-color: var(--current-primary);
+  border-color: var(--current-primary, var(--border-default-light));
+}
+
+[data-mode="dark"] input {
+  border-color: var(--current-primary, var(--border-default-dark));
 }
 
 /* Ensure search bar shows theme color */
 .search-input {
   border-color: var(--current-primary);
+}
+
+/* Added responsive utilities for mobile, tablet, desktop */
+@media (max-width: 640px) {
+  .responsive-text-xs {
+    font-size: 0.75rem;
+  }
+  .responsive-text-sm {
+    font-size: 0.875rem;
+  }
+  .responsive-text-base {
+    font-size: 1rem;
+  }
 }

@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState, useMemo } from "react"
-import { Search, X, ChevronDown, ChevronUp } from "lucide-react"
+import { useState, useMemo, useCallback } from "react"
+import { Search, X, ChevronDown, ChevronUp, SortAsc, BarChart3, TrendingUp } from "lucide-react"
 
 interface User {
   id: number
@@ -35,22 +35,41 @@ interface UserListViewProps {
   commentsByPostId: Record<number, { postId: number; id: number; name: string; email: string; body: string }[]>
 }
 
+type SortOption = "name" | "active" | "comments" | "interactions"
+
 export default function UserListView({ users, posts, postCountMap, commentsByPostId }: UserListViewProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null)
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>("name")
   const mode = typeof window !== "undefined" ? document.documentElement.getAttribute("data-mode") : "light"
+
+  const extractHashtags = (text: string): string[] => {
+    const regex = /#\w+/g
+    return text.match(regex) || []
+  }
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const query = searchQuery.toLowerCase()
+
+      // If it's a hashtag search, check user's posts for that hashtag
+      if (query.startsWith("#")) {
+        const userPosts = posts.filter((p) => p.userId === user.id)
+        return userPosts.some((post) => {
+          const hashtags = extractHashtags(post.body.toLowerCase())
+          return hashtags.includes(query)
+        })
+      }
+
+      // Regular text search
       return (
         user.name.toLowerCase().includes(query) ||
         user.username.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query)
       )
     })
-  }, [users, searchQuery])
+  }, [users, searchQuery, posts])
 
   const userPostsMap = useMemo(() => {
     const map: Record<number, Post[]> = {}
@@ -61,65 +80,175 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
     return map
   }, [posts])
 
+  const userStatsMap = useMemo(() => {
+    const stats: Record<
+      number,
+      {
+        avgInteractions: number
+        mostLikedPost: { title: string; likes: number } | null
+        avgPostsPerMonth: number
+        totalComments: number
+        totalLikes: number
+        reachabilityScore: number
+      }
+    > = {}
+
+    users.forEach((user) => {
+      const userPosts = userPostsMap[user.id] || []
+      if (userPosts.length === 0) {
+        stats[user.id] = {
+          avgInteractions: 0,
+          mostLikedPost: null,
+          avgPostsPerMonth: 0,
+          totalComments: 0,
+          totalLikes: 0,
+          reachabilityScore: 0,
+        }
+        return
+      }
+
+      const totalLikes = userPosts.reduce((sum, post) => sum + post.likes, 0)
+      const totalComments = userPosts.reduce((sum, post) => sum + post.comments, 0)
+      const totalShares = userPosts.reduce((sum, post) => sum + post.shares, 0)
+      const totalViews = userPosts.reduce((sum, post) => sum + post.views, 0)
+      const totalInteractions = totalLikes + totalComments + totalShares
+
+      const avgInteractions = Math.round(totalInteractions / userPosts.length)
+      const avgPostsPerMonth = Math.round((userPosts.length / 12) * 10) / 10
+
+      const mostLikedPost = userPosts.reduce((max, post) => (post.likes > (max?.likes || 0) ? post : max), userPosts[0])
+
+      const reachabilityScore = Math.round((totalViews * (totalInteractions / userPosts.length)) / 10)
+
+      stats[user.id] = {
+        avgInteractions,
+        mostLikedPost: mostLikedPost ? { title: mostLikedPost.title, likes: mostLikedPost.likes } : null,
+        avgPostsPerMonth,
+        totalComments,
+        totalLikes,
+        reachabilityScore,
+      }
+    })
+
+    return stats
+  }, [users, userPostsMap])
+
+  const sortedUsers = useMemo(() => {
+    const sorted = [...filteredUsers]
+
+    switch (sortBy) {
+      case "name":
+        return sorted.sort((a, b) => a.name.localeCompare(b.name))
+      case "active":
+        return sorted.sort((a, b) => (postCountMap[b.id] || 0) - (postCountMap[a.id] || 0))
+      case "comments":
+        return sorted.sort((a, b) => userStatsMap[b.id].totalComments - userStatsMap[a.id].totalComments)
+      case "interactions":
+        return sorted.sort((a, b) => userStatsMap[b.id].avgInteractions - userStatsMap[a.id].avgInteractions)
+      default:
+        return sorted
+    }
+  }, [filteredUsers, sortBy, postCountMap, userStatsMap])
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }, [])
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-6">
-      {/* Search Bar */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex-1 relative">
-          <Search
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-              mode === "light" ? "text-gray-400" : "text-gray-500"
-            }`}
-          />
-          <input
-            type="text"
-            placeholder="Search by name, email, or username..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-              mode === "light"
-                ? "bg-white text-gray-900 placeholder-gray-400"
-                : "bg-gray-700 text-white placeholder-gray-400"
-            }`}
-            style={
-              {
-                borderColor: "var(--current-primary)",
-              } as React.CSSProperties
-            }
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                mode === "light" ? "text-gray-400 hover:text-gray-600" : "text-gray-500 hover:text-gray-300"
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6">
+      {/* Search Bar and Sort Options */}
+      <div className="mb-4 md:mb-6 space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="flex-1 relative">
+            <Search
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                mode === "light" ? "text-gray-400" : "text-gray-500"
               }`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+            />
+            <input
+              type="text"
+              placeholder="Search by name, email, username, or #hashtag..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className={`w-full pl-10 pr-10 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
+                mode === "light"
+                  ? "bg-white text-gray-900 placeholder-gray-400"
+                  : "bg-gray-700 text-white placeholder-gray-400"
+              }`}
+              style={
+                {
+                  borderColor: "var(--current-primary)",
+                } as React.CSSProperties
+              }
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                  mode === "light" ? "text-gray-400 hover:text-gray-600" : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-white whitespace-nowrap text-center"
+            style={{ backgroundColor: "var(--current-primary)" }}
+          >
+            Total: {sortedUsers.length}
+          </div>
         </div>
-        <div
-          className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white whitespace-nowrap"
-          style={{ backgroundColor: "var(--current-primary)" }}
-        >
-          Total: {filteredUsers.length}
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <SortAsc className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
+          <span className="text-xs sm:text-sm font-medium" style={{ color: mode === "light" ? "#6b7280" : "#d1d5db" }}>
+            Sort by:
+          </span>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { value: "name", label: "Name (A-Z)" },
+              { value: "active", label: "Most Active" },
+              { value: "comments", label: "Most Comments" },
+              { value: "interactions", label: "Most Interactions" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setSortBy(option.value as SortOption)}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  sortBy === option.value
+                    ? "text-white"
+                    : mode === "light"
+                      ? "text-gray-600 hover:text-gray-900"
+                      : "text-gray-300 hover:text-white"
+                }`}
+                style={{
+                  backgroundColor:
+                    sortBy === option.value ? "var(--current-primary)" : mode === "light" ? "#f3f4f6" : "#374151",
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* User Cards - Accordion Style */}
       <div className="space-y-3">
-        {filteredUsers.length === 0 ? (
+        {sortedUsers.length === 0 ? (
           <div
-            className={`text-center py-12 rounded-lg ${
+            className={`text-center py-8 sm:py-12 rounded-lg ${
               mode === "light" ? "bg-gray-50 text-gray-500" : "bg-gray-700 text-gray-400"
             }`}
           >
-            <p className="font-medium">No users found</p>
+            <p className="font-medium text-sm sm:text-base">No users found</p>
           </div>
         ) : (
-          filteredUsers.map((user) => {
+          sortedUsers.map((user) => {
             const isExpanded = expandedUserId === user.id
             const userPosts = userPostsMap[user.id] || []
+            const userStats = userStatsMap[user.id]
             const photoGender = user.id % 2 === 0 ? "men" : "women"
             const photoIndex = (user.id % 50) + 1
 
@@ -146,30 +275,34 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                 {/* User Header - Always Visible */}
                 <button
                   onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
-                  className="w-full p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
+                  className="w-full p-3 sm:p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
                 >
-                  <div className="flex items-center gap-4 flex-1">
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     {/* Avatar - Circular Photo from randomuser.me */}
                     <img
                       src={`https://randomuser.me/api/portraits/${photoGender}/${photoIndex}.jpg`}
                       alt={user.name}
-                      className="w-12 h-12 rounded-full flex-shrink-0 object-cover border-2"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 object-cover border-2"
                       style={{ borderColor: "var(--current-primary)" }}
                     />
 
                     {/* User Info */}
-                    <div className="text-left">
-                      <h3 className={`font-semibold text-lg ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                    <div className="text-left min-w-0 flex-1">
+                      <h3
+                        className={`font-semibold text-sm sm:text-base md:text-lg truncate ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                      >
                         {user.name}
                       </h3>
-                      <p className={`text-sm ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                      <p
+                        className={`text-xs sm:text-sm truncate ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}
+                      >
                         @{user.username}
                       </p>
                     </div>
 
                     {/* Post Count Badge */}
                     <div
-                      className="ml-auto px-3 py-1 rounded-full text-sm font-semibold text-white"
+                      className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold text-white whitespace-nowrap flex-shrink-0"
                       style={{ backgroundColor: "var(--current-primary)" }}
                     >
                       {postCountMap[user.id] || 0} posts
@@ -177,11 +310,11 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                   </div>
 
                   {/* Chevron Icon - Always Visible */}
-                  <div className="ml-4 flex-shrink-0">
+                  <div className="ml-2 sm:ml-4 flex-shrink-0">
                     {isExpanded ? (
-                      <ChevronUp className="w-5 h-5" style={{ color: "var(--current-primary)" }} />
+                      <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
                     ) : (
-                      <ChevronDown className="w-5 h-5" style={{ color: "var(--current-primary)" }} />
+                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
                     )}
                   </div>
                 </button>
@@ -189,7 +322,7 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                 {/* Expanded Content */}
                 {isExpanded && (
                   <div
-                    className={`border-t px-4 py-4 space-y-4 ${
+                    className={`border-t px-3 sm:px-4 py-3 sm:py-4 space-y-4 ${
                       mode === "light" ? "border-gray-200 bg-current-light" : "border-gray-600"
                     }`}
                     style={
@@ -198,8 +331,147 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                       } as React.CSSProperties
                     }
                   >
+                    <div className="mb-4">
+                      <h4
+                        className={`font-semibold text-sm mb-3 flex items-center gap-2 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                      >
+                        <BarChart3 className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
+                        User Statistics
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+                        {/* Average Interactions */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: "var(--current-primary)" }} />
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Avg Interactions
+                            </p>
+                          </div>
+                          <p
+                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.avgInteractions || 0}
+                          </p>
+                        </div>
+
+                        {/* Most Liked Post */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm sm:text-base">❤️</span>
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Most Liked Post
+                            </p>
+                          </div>
+                          <p
+                            className={`text-xs sm:text-sm font-medium line-clamp-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.mostLikedPost?.title || "N/A"}
+                          </p>
+                          <p className={`text-xs ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                            {userStats?.mostLikedPost?.likes || 0} likes
+                          </p>
+                        </div>
+
+                        {/* Avg Posts Per Month */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm sm:text-base">📅</span>
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Posts/Month
+                            </p>
+                          </div>
+                          <p
+                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.avgPostsPerMonth || 0}
+                          </p>
+                        </div>
+
+                        {/* Total Comments */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm sm:text-base">💬</span>
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Total Comments
+                            </p>
+                          </div>
+                          <p
+                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.totalComments || 0}
+                          </p>
+                        </div>
+
+                        {/* Total Likes */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm sm:text-base">❤️</span>
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Total Likes
+                            </p>
+                          </div>
+                          <p
+                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.totalLikes || 0}
+                          </p>
+                        </div>
+
+                        {/* Reachability Score */}
+                        <div
+                          className={`p-2 sm:p-3 rounded-lg border ${
+                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm sm:text-base">🎯</span>
+                            <p
+                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                            >
+                              Reach Score
+                            </p>
+                          </div>
+                          <p
+                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {userStats?.reachabilityScore || 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* User Details Grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <p
                           className={`text-xs font-semibold uppercase ${
@@ -209,7 +481,7 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                           Email
                         </p>
                         <p
-                          className={`text-sm font-medium mt-1 break-all ${
+                          className={`text-xs sm:text-sm font-medium mt-1 break-all ${
                             mode === "light" ? "text-gray-900" : "text-white"
                           }`}
                         >
@@ -224,7 +496,9 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                         >
                           Phone
                         </p>
-                        <p className={`text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                        <p
+                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                        >
                           {user.phone}
                         </p>
                       </div>
@@ -237,7 +511,7 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                           Website
                         </p>
                         <p
-                          className={`text-sm font-medium mt-1 truncate ${
+                          className={`text-xs sm:text-sm font-medium mt-1 truncate ${
                             mode === "light" ? "text-gray-900" : "text-white"
                           }`}
                         >
@@ -253,14 +527,14 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                           Company
                         </p>
                         <p
-                          className={`text-sm font-medium mt-1 truncate ${
+                          className={`text-xs sm:text-sm font-medium mt-1 truncate ${
                             mode === "light" ? "text-gray-900" : "text-white"
                           }`}
                         >
                           {user.company.name}
                         </p>
                       </div>
-                      <div className="col-span-2">
+                      <div className="sm:col-span-2">
                         <p
                           className={`text-xs font-semibold uppercase ${
                             mode === "light" ? "text-gray-500" : "text-gray-400"
@@ -268,11 +542,13 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                         >
                           Address
                         </p>
-                        <p className={`text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                        <p
+                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                        >
                           {user.address.street}, {user.address.city} {user.address.zipcode}
                         </p>
                       </div>
-                      <div className="col-span-2">
+                      <div className="sm:col-span-2">
                         <p
                           className={`text-xs font-semibold uppercase ${
                             mode === "light" ? "text-gray-500" : "text-gray-400"
@@ -280,7 +556,9 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                         >
                           Company Catchphrase
                         </p>
-                        <p className={`text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                        <p
+                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                        >
                           "{user.company.catchPhrase}"
                         </p>
                       </div>
@@ -293,7 +571,7 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
                       </h4>
                       <div className="space-y-3">
                         {userPosts.length === 0 ? (
-                          <p className={`text-sm ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
+                          <p className={`text-xs sm:text-sm ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
                             No posts from this user
                           </p>
                         ) : (
@@ -334,23 +612,39 @@ function PostCard({
   const mode = typeof window !== "undefined" ? document.documentElement.getAttribute("data-mode") : "light"
   const isExpanded = expandedPostId === post.id
 
+  const renderBodyWithHashtags = (body: string) => {
+    const parts = body.split(/(#\w+)/g)
+    return parts.map((part, index) => {
+      if (part.startsWith("#")) {
+        return (
+          <span key={index} className="font-semibold" style={{ color: "var(--current-primary)" }}>
+            {part}
+          </span>
+        )
+      }
+      return part
+    })
+  }
+
   return (
     <div
-      className={`p-4 rounded-lg border transition-all ${
+      className={`p-3 sm:p-4 rounded-lg border transition-all ${
         mode === "light" ? "bg-white border-gray-200 hover:shadow-md" : "bg-gray-800 border-gray-700 hover:shadow-md"
       }`}
     >
       <h5
-        className={`font-semibold text-sm line-clamp-2 mb-2 capitalize ${
+        className={`font-semibold text-xs sm:text-sm line-clamp-2 mb-2 capitalize ${
           mode === "light" ? "text-gray-900" : "text-white"
         }`}
       >
         {post.title}
       </h5>
-      <p className={`text-sm line-clamp-2 mb-3 ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>{post.body}</p>
+      <p className={`text-xs sm:text-sm line-clamp-2 mb-3 ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>
+        {renderBodyWithHashtags(post.body)}
+      </p>
 
       {/* Interaction Metrics */}
-      <div className="flex items-center justify-between text-xs gap-2 mb-3">
+      <div className="flex items-center justify-between text-xs gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-1">
           <span style={{ color: "var(--current-primary)" }}>❤️</span>
           <span className={mode === "light" ? "text-gray-700" : "text-gray-300"}>{post.likes}</span>
@@ -391,13 +685,15 @@ function PostCard({
               <div key={comment.id} className={`text-xs ${mode === "light" ? "" : ""}`}>
                 <div className="flex items-start gap-2">
                   <div
-                    className="w-6 h-6 rounded-full flex-shrink-0 text-white font-bold text-xs flex items-center justify-center"
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex-shrink-0 text-white font-bold text-xs flex items-center justify-center"
                     style={{ backgroundColor: "var(--current-primary)" }}
                   >
                     {comment.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold ${mode === "light" ? "text-gray-900" : "text-white"}`}>
+                    <p
+                      className={`font-semibold text-xs sm:text-sm ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                    >
                       {comment.name}
                     </p>
                     <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>{comment.email}</p>
