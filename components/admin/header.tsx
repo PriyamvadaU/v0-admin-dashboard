@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { Users, FileText, Sun, Moon, Palette } from "lucide-react"
 
 interface HeaderProps {
@@ -65,22 +63,15 @@ export default function Header({
               className={`flex gap-1 sm:gap-2 p-1 rounded-lg w-full sm:w-auto ${
                 mode === "light" ? "bg-gray-100 border border-gray-200" : "bg-gray-700 border border-gray-600"
               }`}
-              style={
-                {
-                  "--current-primary": "var(--current-primary)",
-                } as React.CSSProperties
-              }
             >
               <button
                 onClick={() => onViewChange("users")}
                 className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-md transition-all font-medium text-xs sm:text-sm flex-1 sm:flex-none ${
                   view === "users"
-                    ? mode === "light"
-                      ? "shadow-sm text-white"
-                      : "text-white"
+                    ? "text-white shadow-sm"
                     : mode === "light"
-                      ? "text-gray-600 hover:text-gray-900"
-                      : "text-gray-300 hover:text-white"
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-gray-300 hover:bg-gray-600"
                 }`}
                 style={{
                   backgroundColor: view === "users" ? "var(--current-primary)" : "transparent",
@@ -93,12 +84,10 @@ export default function Header({
                 onClick={() => onViewChange("posts")}
                 className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-md transition-all font-medium text-xs sm:text-sm flex-1 sm:flex-none ${
                   view === "posts"
-                    ? mode === "light"
-                      ? "shadow-sm text-white"
-                      : "text-white"
+                    ? "text-white shadow-sm"
                     : mode === "light"
-                      ? "text-gray-600 hover:text-gray-900"
-                      : "text-gray-300 hover:text-white"
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-gray-300 hover:bg-gray-600"
                 }`}
                 style={{
                   backgroundColor: view === "posts" ? "var(--current-primary)" : "transparent",
@@ -111,12 +100,10 @@ export default function Header({
                 onClick={() => onViewChange("usernames")}
                 className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-md transition-all font-medium text-xs sm:text-sm flex-1 sm:flex-none ${
                   view === "usernames"
-                    ? mode === "light"
-                      ? "shadow-sm text-white"
-                      : "text-white"
+                    ? "text-white shadow-sm"
                     : mode === "light"
-                      ? "text-gray-600 hover:text-gray-900"
-                      : "text-gray-300 hover:text-white"
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-gray-300 hover:bg-gray-600"
                 }`}
                 style={{
                   backgroundColor: view === "usernames" ? "var(--current-primary)" : "transparent",

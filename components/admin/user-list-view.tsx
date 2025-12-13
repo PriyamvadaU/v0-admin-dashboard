@@ -241,15 +241,12 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
               value={searchQuery}
               onChange={handleSearchChange}
               className={`w-full pl-10 pr-10 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
-                mode === "light"
-                  ? "bg-white text-gray-900 placeholder-gray-400"
-                  : "bg-gray-700 text-white placeholder-gray-400"
+                mode === "light" ? "text-gray-900 placeholder-gray-400" : "text-white placeholder-gray-400"
               }`}
-              style={
-                {
-                  borderColor: "var(--current-primary)",
-                } as React.CSSProperties
-              }
+              style={{
+                backgroundColor: mode === "light" ? "#FAFAFA" : "#4B5563",
+                borderColor: "var(--current-primary)",
+              }}
             />
             {searchQuery && (
               <button
@@ -262,453 +259,458 @@ export default function UserListView({ users, posts, postCountMap, commentsByPos
               </button>
             )}
           </div>
-          <div
-            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-white whitespace-nowrap text-center"
-            style={{ backgroundColor: "var(--current-primary)" }}
-          >
-            Total: {sortedUsers.length}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <SortAsc className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
-          <span className="text-xs sm:text-sm font-medium" style={{ color: mode === "light" ? "#6b7280" : "#d1d5db" }}>
-            Sort by:
-          </span>
-          <div className="flex gap-2 flex-wrap">
-            {[
-              { value: "name", label: "Name (A-Z)" },
-              { value: "active", label: "Most Active" },
-              { value: "comments", label: "Most Comments" },
-              { value: "interactions", label: "Most Interactions" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSortBy(option.value as SortOption)}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-base font-medium transition-colors ${
-                  sortBy === option.value
-                    ? "text-white"
-                    : mode === "light"
-                      ? "text-gray-600 hover:text-gray-900"
-                      : "text-gray-300 hover:text-white"
-                }`}
-                style={{
-                  backgroundColor:
-                    sortBy === option.value ? "var(--current-primary)" : mode === "light" ? "#f3f4f6" : "#374151",
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* User Cards - Accordion Style */}
-      <div className="space-y-3">
-        {sortedUsers.length === 0 ? (
-          <div
-            className={`text-center py-8 sm:py-12 rounded-lg ${
-              mode === "light" ? "bg-gray-50 text-gray-500" : "bg-gray-700 text-gray-400"
-            }`}
-          >
-            <p className="font-medium text-sm sm:text-base">No users found</p>
-          </div>
-        ) : (
-          sortedUsers.map((user) => {
-            const isExpanded = expandedUserId === user.id
-            const userPosts = userPostsMap[user.id] || []
-            const userStats = userStatsMap[user.id]
-            const photoGender = user.id % 2 === 0 ? "men" : "women"
-            const photoIndex = (user.id % 50) + 1
-
-            return (
-              <div
-                key={user.id}
-                className={`rounded-lg border transition-all ${
-                  isExpanded
-                    ? mode === "light"
-                      ? "bg-current-light shadow-lg"
-                      : "bg-gray-700 shadow-lg"
-                    : mode === "light"
-                      ? "bg-white shadow-sm hover:shadow-md"
-                      : "bg-gray-800 shadow-sm hover:shadow-md"
-                }`}
-                style={
-                  {
-                    borderColor: "var(--current-primary)",
-                    "--current-primary": "var(--current-primary)",
-                    "--current-light": "var(--current-light)",
-                  } as React.CSSProperties
-                }
-              >
-                {/* User Header - Always Visible */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <SortAsc className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
+            <span
+              className="text-xs sm:text-sm font-medium"
+              style={{ color: mode === "light" ? "#6b7280" : "#d1d5db" }}
+            >
+              Sort by:
+            </span>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { value: "name", label: "Name (A-Z)" },
+                { value: "active", label: "Most Active" },
+                { value: "comments", label: "Most Comments" },
+                { value: "interactions", label: "Most Interactions" },
+              ].map((option) => (
                 <button
-                  onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
-                  className="w-full p-3 sm:p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
+                  key={option.value}
+                  onClick={() => setSortBy(option.value as SortOption)}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                    sortBy === option.value
+                      ? "text-white shadow-sm"
+                      : mode === "light"
+                        ? "text-gray-700 hover:bg-gray-100"
+                        : "text-gray-300 hover:bg-gray-600"
+                  }`}
+                  style={{
+                    backgroundColor:
+                      sortBy === option.value ? "var(--current-primary)" : mode === "light" ? "#F5F5F5" : "#374151",
+                  }}
                 >
-                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    {/* Avatar - Circular Photo from randomuser.me */}
-                    <img
-                      src={`https://randomuser.me/api/portraits/${photoGender}/${photoIndex}.jpg`}
-                      alt={user.name}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 object-cover border-2"
-                      style={{ borderColor: "var(--current-primary)" }}
-                    />
-
-                    {/* User Info */}
-                    <div className="text-left min-w-0 flex-1">
-                      <h3
-                        className={`font-semibold text-sm sm:text-base md:text-lg truncate ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                      >
-                        {user.name}
-                      </h3>
-                      <p
-                        className={`text-xs sm:text-sm truncate ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}
-                      >
-                        @{user.username}
-                      </p>
-                    </div>
-
-                    {/* Post Count Badge */}
-                    <div
-                      className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold text-white whitespace-nowrap flex-shrink-0"
-                      style={{ backgroundColor: "var(--current-primary)" }}
-                    >
-                      {postCountMap[user.id] || 0} posts
-                    </div>
-                  </div>
-
-                  {/* Chevron Icon - Always Visible */}
-                  <div className="ml-2 sm:ml-4 flex-shrink-0">
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
-                    )}
-                  </div>
+                  {option.label}
                 </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                {/* Expanded Content */}
-                {isExpanded && (
-                  <div
-                    className={`border-t px-3 sm:px-4 py-3 sm:py-4 space-y-4 ${
-                      mode === "light" ? "border-gray-200 bg-current-light" : "border-gray-600"
-                    }`}
-                    style={
-                      {
-                        "--current-light": "var(--current-light)",
-                      } as React.CSSProperties
-                    }
+        {/* User Cards - Accordion Style */}
+        <div className="space-y-3">
+          {sortedUsers.length === 0 ? (
+            <div
+              className={`text-center py-8 sm:py-12 rounded-lg ${
+                mode === "light" ? "bg-gray-50 text-gray-500" : "bg-gray-700 text-gray-400"
+              }`}
+            >
+              <p className="font-medium text-sm sm:text-base">No users found</p>
+            </div>
+          ) : (
+            sortedUsers.map((user) => {
+              const isExpanded = expandedUserId === user.id
+              const userPosts = userPostsMap[user.id] || []
+              const userStats = userStatsMap[user.id]
+              const photoGender = user.id % 2 === 0 ? "men" : "women"
+              const photoIndex = (user.id % 50) + 1
+
+              return (
+                <div
+                  key={user.id}
+                  className={`rounded-lg border transition-all ${
+                    isExpanded
+                      ? mode === "light"
+                        ? "bg-current-light shadow-lg"
+                        : "bg-gray-700 shadow-lg"
+                      : mode === "light"
+                        ? "bg-white shadow-sm hover:shadow-md"
+                        : "bg-gray-800 shadow-sm hover:shadow-md"
+                  }`}
+                  style={
+                    {
+                      borderColor: "var(--current-primary)",
+                      "--current-primary": "var(--current-primary)",
+                      "--current-light": "var(--current-light)",
+                    } as React.CSSProperties
+                  }
+                >
+                  {/* User Header - Always Visible */}
+                  <button
+                    onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
+                    className="w-full p-3 sm:p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
                   >
-                    <div className="mb-4">
-                      <h4
-                        className={`font-semibold text-sm mb-3 flex items-center gap-2 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      {/* Avatar - Circular Photo from randomuser.me */}
+                      <img
+                        src={`https://randomuser.me/api/portraits/${photoGender}/${photoIndex}.jpg`}
+                        alt={user.name}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 object-cover border-2"
+                        style={{ borderColor: "var(--current-primary)" }}
+                      />
+
+                      {/* User Info */}
+                      <div className="text-left min-w-0 flex-1">
+                        <h3
+                          className={`font-semibold text-sm sm:text-base md:text-lg truncate ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                        >
+                          {user.name}
+                        </h3>
+                        <p
+                          className={`text-xs sm:text-sm truncate ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}
+                        >
+                          @{user.username}
+                        </p>
+                      </div>
+
+                      {/* Post Count Badge */}
+                      <div
+                        className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold text-white whitespace-nowrap flex-shrink-0"
+                        style={{ backgroundColor: "var(--current-primary)" }}
                       >
-                        <BarChart3 className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
-                        User Statistics
-                      </h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
-                        {/* Average Interactions */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: "var(--current-primary)" }} />
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Avg Interactions
-                            </p>
-                          </div>
-                          <p
-                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.avgInteractions || 0}
-                          </p>
-                        </div>
-
-                        {/* Most Liked Post */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm sm:text-base">❤️</span>
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Most Liked Post
-                            </p>
-                          </div>
-                          <p
-                            className={`text-xs sm:text-sm font-medium line-clamp-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.mostLikedPost?.title || "N/A"}
-                          </p>
-                          <p className={`text-xs ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>
-                            {userStats?.mostLikedPost?.likes || 0} likes
-                          </p>
-                        </div>
-
-                        {/* Avg Posts Per Month */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm sm:text-base">📅</span>
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Posts/Month
-                            </p>
-                          </div>
-                          <p
-                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.avgPostsPerMonth || 0}
-                          </p>
-                        </div>
-
-                        {/* Total Comments */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm sm:text-base">💬</span>
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Total Comments
-                            </p>
-                          </div>
-                          <p
-                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.totalComments || 0}
-                          </p>
-                        </div>
-
-                        {/* Total Likes */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm sm:text-base">❤️</span>
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Total Likes
-                            </p>
-                          </div>
-                          <p
-                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.totalLikes || 0}
-                          </p>
-                        </div>
-
-                        {/* Reachability Score */}
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm sm:text-base">🎯</span>
-                            <p
-                              className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
-                            >
-                              Reach Score
-                            </p>
-                          </div>
-                          <p
-                            className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                          >
-                            {userStats?.reachabilityScore || 0}%
-                          </p>
-                        </div>
+                        {postCountMap[user.id] || 0} posts
                       </div>
                     </div>
 
-                    {/* User Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div>
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Email
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 break-all ${
-                            mode === "light" ? "text-gray-900" : "text-white"
-                          }`}
-                        >
-                          {user.email}
-                        </p>
-                      </div>
-                      <div>
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Phone
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                        >
-                          {user.phone}
-                        </p>
-                      </div>
-                      <div>
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Website
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 truncate ${
-                            mode === "light" ? "text-gray-900" : "text-white"
-                          }`}
-                        >
-                          {user.website}
-                        </p>
-                      </div>
-                      <div>
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Company
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 truncate ${
-                            mode === "light" ? "text-gray-900" : "text-white"
-                          }`}
-                        >
-                          {user.company.name}
-                        </p>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Address
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                        >
-                          {user.address.street}, {user.address.city} {user.address.zipcode}
-                        </p>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <p
-                          className={`text-xs font-semibold uppercase ${
-                            mode === "light" ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
-                          Company Catchphrase
-                        </p>
-                        <p
-                          className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
-                        >
-                          "{user.company.catchPhrase}"
-                        </p>
-                      </div>
+                    {/* Chevron Icon - Always Visible */}
+                    <div className="ml-2 sm:ml-4 flex-shrink-0">
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: "var(--current-primary)" }} />
+                      )}
                     </div>
+                  </button>
 
-                    {/* Individual Post Sort Bar */}
-                    <div className="border-t pt-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
-                        <label
-                          className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${
-                            mode === "light" ? "text-gray-700" : "text-gray-300"
-                          }`}
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div
+                      className={`border-t px-3 sm:px-4 py-3 sm:py-4 space-y-4 ${
+                        mode === "light" ? "border-gray-200 bg-current-light" : "border-gray-600"
+                      }`}
+                      style={
+                        {
+                          "--current-light": "var(--current-light)",
+                        } as React.CSSProperties
+                      }
+                    >
+                      <div className="mb-4">
+                        <h4
+                          className={`font-semibold text-sm mb-3 flex items-center gap-2 ${mode === "light" ? "text-gray-900" : "text-white"}`}
                         >
-                          Sort Posts By:
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            { value: "chronological", label: "Chronological", icon: "📅" },
-                            { value: "mostLiked", label: "Most Liked", icon: "❤️" },
-                            { value: "leastLiked", label: "Least Liked", icon: "💔" },
-                            { value: "mostCommented", label: "Most Commented", icon: "💬" },
-                            { value: "mostPopularTopic", label: "Popular Topic", icon: "🔥" },
-                            { value: "leastPopularTopic", label: "Niche Topic", icon: "🌱" },
-                            { value: "mostShared", label: "Most Shared", icon: "📤" },
-                            { value: "mostViewed", label: "Most Viewed", icon: "👁️" },
-                          ].map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() => handleUserPostSort(user.id, option.value as UserPostSortOption)}
-                              className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-all ${
-                                (userPostSortMap[user.id] || "chronological") === option.value
-                                  ? "text-white shadow-md"
-                                  : mode === "light"
-                                    ? "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                                    : "bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
-                              }`}
-                              style={
-                                (userPostSortMap[user.id] || "chronological") === option.value
-                                  ? { backgroundColor: "var(--current-primary)" }
-                                  : {}
-                              }
+                          <BarChart3 className="w-4 h-4" style={{ color: "var(--current-primary)" }} />
+                          User Statistics
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+                          {/* Average Interactions */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <TrendingUp
+                                className="w-3 h-3 sm:w-4 sm:h-4"
+                                style={{ color: "var(--current-primary)" }}
+                              />
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Avg Interactions
+                              </p>
+                            </div>
+                            <p
+                              className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
                             >
-                              <span className="text-xs">{option.icon}</span>
-                              <span className="hidden sm:inline">{option.label}</span>
-                              <span className="sm:hidden">{option.label.split(" ")[0]}</span>
-                            </button>
-                          ))}
+                              {userStats?.avgInteractions || 0}
+                            </p>
+                          </div>
+
+                          {/* Most Liked Post */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm sm:text-base">❤️</span>
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Most Liked Post
+                              </p>
+                            </div>
+                            <p
+                              className={`text-xs sm:text-sm font-medium line-clamp-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                            >
+                              {userStats?.mostLikedPost?.title || "N/A"}
+                            </p>
+                            <p className={`text-xs ${mode === "light" ? "text-gray-600" : "text-gray-400"}`}>
+                              {userStats?.mostLikedPost?.likes || 0} likes
+                            </p>
+                          </div>
+
+                          {/* Avg Posts Per Month */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm sm:text-base">📅</span>
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Posts/Month
+                              </p>
+                            </div>
+                            <p
+                              className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                            >
+                              {userStats?.avgPostsPerMonth || 0}
+                            </p>
+                          </div>
+
+                          {/* Total Comments */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm sm:text-base">💬</span>
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Total Comments
+                              </p>
+                            </div>
+                            <p
+                              className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                            >
+                              {userStats?.totalComments || 0}
+                            </p>
+                          </div>
+
+                          {/* Total Likes */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm sm:text-base">❤️</span>
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Total Likes
+                              </p>
+                            </div>
+                            <p
+                              className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                            >
+                              {userStats?.totalLikes || 0}
+                            </p>
+                          </div>
+
+                          {/* Reachability Score */}
+                          <div
+                            className={`p-2 sm:p-3 rounded-lg border ${
+                              mode === "light" ? "bg-white border-gray-200" : "bg-gray-800 border-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm sm:text-base">🎯</span>
+                              <p
+                                className={`text-xs font-semibold ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}
+                              >
+                                Reach Score
+                              </p>
+                            </div>
+                            <p
+                              className={`text-lg sm:text-xl font-bold ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                            >
+                              {userStats?.reachabilityScore || 0}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* User Details Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Email
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 break-all ${
+                              mode === "light" ? "text-gray-900" : "text-white"
+                            }`}
+                          >
+                            {user.email}
+                          </p>
+                        </div>
+                        <div>
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Phone
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {user.phone}
+                          </p>
+                        </div>
+                        <div>
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Website
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 truncate ${
+                              mode === "light" ? "text-gray-900" : "text-white"
+                            }`}
+                          >
+                            {user.website}
+                          </p>
+                        </div>
+                        <div>
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Company
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 truncate ${
+                              mode === "light" ? "text-gray-900" : "text-white"
+                            }`}
+                          >
+                            {user.company.name}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Address
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            {user.address.street}, {user.address.city} {user.address.zipcode}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p
+                            className={`text-xs font-semibold uppercase ${
+                              mode === "light" ? "text-gray-500" : "text-gray-400"
+                            }`}
+                          >
+                            Company Catchphrase
+                          </p>
+                          <p
+                            className={`text-xs sm:text-sm font-medium mt-1 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                          >
+                            "{user.company.catchPhrase}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Individual Post Sort Bar */}
+                      <div className="border-t pt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+                          <label
+                            className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${
+                              mode === "light" ? "text-gray-700" : "text-gray-300"
+                            }`}
+                          >
+                            Sort Posts By:
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { value: "chronological", label: "Chronological", icon: "📅" },
+                              { value: "mostLiked", label: "Most Liked", icon: "❤️" },
+                              { value: "leastLiked", label: "Least Liked", icon: "💔" },
+                              { value: "mostCommented", label: "Most Commented", icon: "💬" },
+                              { value: "mostPopularTopic", label: "Popular Topic", icon: "🔥" },
+                              { value: "leastPopularTopic", label: "Niche Topic", icon: "🌱" },
+                              { value: "mostShared", label: "Most Shared", icon: "📤" },
+                              { value: "mostViewed", label: "Most Viewed", icon: "👁️" },
+                            ].map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={() => handleUserPostSort(user.id, option.value as UserPostSortOption)}
+                                /* Updated button styling with reversed contrast - dark bg for active, light for inactive */
+                                className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  (userPostSortMap[user.id] || "chronological") === option.value
+                                    ? "text-white shadow-md"
+                                    : mode === "light"
+                                      ? "text-gray-700 hover:bg-gray-100"
+                                      : "text-gray-300 hover:bg-gray-600"
+                                }`}
+                                style={{
+                                  backgroundColor:
+                                    (userPostSortMap[user.id] || "chronological") === option.value
+                                      ? "var(--current-primary)"
+                                      : mode === "light"
+                                        ? "#F5F5F5"
+                                        : "#374151",
+                                }}
+                              >
+                                <span className="text-xs">{option.icon}</span>
+                                <span className="hidden sm:inline">{option.label}</span>
+                                <span className="sm:hidden">{option.label.split(" ")[0]}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* User Posts */}
+                      <div className="border-t pt-4">
+                        <h4
+                          className={`font-semibold text-sm mb-4 ${mode === "light" ? "text-gray-900" : "text-white"}`}
+                        >
+                          Posts ({userPosts.length})
+                        </h4>
+                        <div className="space-y-3">
+                          {userPosts.length === 0 ? (
+                            <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
+                              No posts from this user
+                            </p>
+                          ) : (
+                            getSortedUserPosts(user.id, userPosts).map((post) => (
+                              <PostCard
+                                key={post.id}
+                                post={post}
+                                postComments={commentsByPostId[post.id] || []}
+                                expandedPostId={expandedPostId}
+                                setExpandedPostId={setExpandedPostId}
+                              />
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>
-
-                    {/* User Posts */}
-                    <div className="border-t pt-4">
-                      <h4 className={`font-semibold text-sm mb-4 ${mode === "light" ? "text-gray-900" : "text-white"}`}>
-                        Posts ({userPosts.length})
-                      </h4>
-                      <div className="space-y-3">
-                        {userPosts.length === 0 ? (
-                          <p className={`text-xs ${mode === "light" ? "text-gray-500" : "text-gray-400"}`}>
-                            No posts from this user
-                          </p>
-                        ) : (
-                          getSortedUserPosts(user.id, userPosts).map((post) => (
-                            <PostCard
-                              key={post.id}
-                              post={post}
-                              postComments={commentsByPostId[post.id] || []}
-                              expandedPostId={expandedPostId}
-                              setExpandedPostId={setExpandedPostId}
-                            />
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })
-        )}
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
     </div>
   )

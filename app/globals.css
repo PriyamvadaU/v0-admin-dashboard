@@ -117,6 +117,73 @@
   /* Default search bar and input colors (light mode) */
   --border-default-light: #d1d5db;
   --border-default-dark: rgb(84, 119, 146);
+
+  /* Updated theme colors to match exact specification RGB values */
+  /* Sage Theme Light Mode */
+  --sage-light-primary: #a5b18d;
+  --sage-light-secondary: #e8daba;
+  --sage-light-accent: #d9a891;
+  --sage-light-background: #f5efe0;
+  --sage-light-muted: #c8aeb2;
+
+  /* Sage Theme Dark Mode */
+  --sage-dark-primary: #8a9b7a;
+  --sage-dark-secondary: #d4c5a8;
+  --sage-dark-accent: #c8978a;
+  --sage-dark-background: #2a2f25;
+  --sage-dark-muted: #b09aa3;
+
+  /* Lavender Theme Light Mode */
+  --lavender-light-primary: #c8b6e2;
+  --lavender-light-secondary: #e8d5f2;
+  --lavender-light-accent: #d4a5e0;
+  --lavender-light-background: #f3e8ff;
+  --lavender-light-muted: #b8a5d6;
+
+  /* Lavender Theme Dark Mode */
+  --lavender-dark-primary: #9b7ebd;
+  --lavender-dark-secondary: #c8a8e0;
+  --lavender-dark-accent: #b8a5d6;
+  --lavender-dark-background: #2d1b3d;
+  --lavender-dark-muted: #8e7aa8;
+
+  /* Ocean Theme Light Mode */
+  --ocean-light-primary: #7ba3c0;
+  --ocean-light-secondary: #a8d5e2;
+  --ocean-light-accent: #8bb4d6;
+  --ocean-light-background: #e0f2f7;
+  --ocean-light-muted: #6b9ab8;
+
+  /* Ocean Theme Dark Mode */
+  --ocean-dark-primary: #5a7a90;
+  --ocean-dark-secondary: #8bb4d6;
+  --ocean-dark-accent: #6b9ab8;
+  --ocean-dark-background: #1a2a3a;
+  --ocean-dark-muted: #4a6a80;
+
+  /* Sunset Theme Light Mode */
+  --sunset-light-primary: #e8a87c;
+  --sunset-light-secondary: #f5c18b;
+  --sunset-light-accent: #e89b7e;
+  --sunset-light-background: #ffe8d6;
+  --sunset-light-muted: #d68a6c;
+
+  /* Sunset Theme Dark Mode */
+  --sunset-dark-primary: #c8906c;
+  --sunset-dark-secondary: #e8a87c;
+  --sunset-dark-accent: #d68a6c;
+  --sunset-dark-background: #3d2615;
+  --sunset-dark-muted: #b87a5c;
+
+  /* Search input background colors per spec */
+  --search-bg-light: #fafafa;
+  --search-bg-dark: #4b5563;
+  --search-border-light: #e5e7eb;
+  --search-border-dark: #6b7280;
+
+  /* Button inactive background colors for reversed contrast */
+  --button-inactive-light: #f5f5f5;
+  --button-inactive-dark: #374151;
 }
 
 .dark {
@@ -220,68 +287,68 @@
 
 /* Light mode themes */
 [data-theme="sage"][data-mode="light"] {
-  --current-primary: var(--sage-primary);
-  --current-secondary: var(--sage-secondary);
-  --current-accent: var(--sage-accent);
-  --current-muted: var(--sage-muted);
-  --current-light: var(--sage-light);
+  --current-primary: var(--sage-light-primary);
+  --current-secondary: var(--sage-light-secondary);
+  --current-accent: var(--sage-light-accent);
+  --current-background: var(--sage-light-background);
+  --current-muted: var(--sage-light-muted);
 }
 
 [data-theme="lavender"][data-mode="light"] {
-  --current-primary: var(--lavender-primary);
-  --current-secondary: var(--lavender-secondary);
-  --current-accent: var(--lavender-accent);
-  --current-muted: var(--lavender-muted);
-  --current-light: var(--lavender-light);
+  --current-primary: var(--lavender-light-primary);
+  --current-secondary: var(--lavender-light-secondary);
+  --current-accent: var(--lavender-light-accent);
+  --current-background: var(--lavender-light-background);
+  --current-muted: var(--lavender-light-muted);
 }
 
 [data-theme="ocean"][data-mode="light"] {
-  --current-primary: var(--ocean-primary);
-  --current-secondary: var(--ocean-secondary);
-  --current-accent: var(--ocean-accent);
-  --current-muted: var(--ocean-muted);
-  --current-light: var(--ocean-light);
+  --current-primary: var(--ocean-light-primary);
+  --current-secondary: var(--ocean-light-secondary);
+  --current-accent: var(--ocean-light-accent);
+  --current-background: var(--ocean-light-background);
+  --current-muted: var(--ocean-light-muted);
 }
 
 [data-theme="sunset"][data-mode="light"] {
   --current-primary: var(--dusty-rose-primary);
   --current-secondary: var(--dusty-rose-secondary);
   --current-accent: var(--dusty-rose-accent);
+  --current-background: var(--dusty-rose-light);
   --current-muted: var(--dusty-rose-muted);
-  --current-light: var(--dusty-rose-light);
 }
 
 /* Dark mode themes */
 [data-theme="sage"][data-mode="dark"] {
-  --current-primary: var(--deep-navy-accent);
-  --current-secondary: var(--deep-navy-secondary);
-  --current-accent: var(--deep-navy-muted);
-  --current-muted: var(--deep-navy-primary);
-  --current-light: var(--deep-navy-dark);
+  --current-primary: var(--sage-dark-primary);
+  --current-secondary: var(--sage-dark-secondary);
+  --current-accent: var(--sage-dark-accent);
+  --current-background: var(--sage-dark-background);
+  --current-muted: var(--sage-dark-muted);
 }
 
 [data-theme="lavender"][data-mode="dark"] {
-  --current-primary: var(--slate-accent);
-  --current-secondary: var(--slate-secondary);
-  --current-accent: var(--slate-primary);
-  --current-muted: var(--slate-muted);
-  --current-light: var(--slate-dark);
+  --current-primary: var(--lavender-dark-primary);
+  --current-secondary: var(--lavender-dark-secondary);
+  --current-accent: var(--lavender-dark-accent);
+  --current-background: var(--lavender-dark-background);
+  --current-muted: var(--lavender-dark-muted);
 }
 
 [data-theme="ocean"][data-mode="dark"] {
-  --current-primary: var(--midnight-primary);
-  --current-secondary: var(--midnight-secondary);
-  --current-accent: var(--midnight-accent);
-  --current-muted: var(--midnight-muted);
-  --current-light: var(--midnight-dark);
+  --current-primary: var(--ocean-dark-primary);
+  --current-secondary: var(--ocean-dark-secondary);
+  --current-accent: var(--ocean-dark-accent);
+  --current-background: var(--ocean-dark-background);
+  --current-muted: var(--ocean-dark-muted);
 }
 
 [data-theme="sunset"][data-mode="dark"] {
   --current-primary: var(--sunset-dark-primary);
   --current-secondary: var(--sunset-dark-secondary);
   --current-accent: var(--sunset-dark-accent);
+  --current-background: var(--sunset-dark-background);
   --current-muted: var(--sunset-dark-muted);
-  --current-light: var(--sunset-dark-bg);
 }
 
 /* Custom scrollbar */
